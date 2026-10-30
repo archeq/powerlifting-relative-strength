@@ -1,0 +1,16 @@
+[project]
+name = "powerlifting-relative-strength"
+version = "0.1.0"
+description = "IPF GL Points: measuring and questioning relative strength in powerlifting on OpenIPF data"
+requires-python = ">=3.14"
+dependencies = [
+    "matplotlib>=3.11.2",
+    "numpy>=2.5.4",
+    "pandas>=3.1.0",
+    "scipy>=1.18.1",
+]
+
+[dependency-groups]
+dev = [
+    "jupyter>=1.1.1",
+]
