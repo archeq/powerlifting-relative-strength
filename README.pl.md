@@ -191,18 +191,45 @@ Metryka taka jak IPF GL dobrze sprawdza się przy zawężaniu wyboru i obiektywn
 w ustalonych warunkach i w ten sposób używa jej IPF. Prawidłowa ocena zawodnika wymaga jednak kilku metryk
 (rekord, regularność, trend, wiek), kontekstu startów i wiedzy trenera.
 
+## Druga analiza: kogo wysłać na mistrzostwa świata?
+
+Zadanie 2.2 (*Od pomysłu do analizy*) stosuje ten wniosek w praktyce. Polski związek ma jedno miejsce w kategorii
+mężczyzn do 105 kg na mistrzostwach świata IPF, a pięciu aktywnych polskich zawodników ma rekord GL między 99,7
+a 101,5. Notebook [`team_selection.ipynb`](team_selection.ipynb) porównuje ich za pomocą czterech metryk na
+rzeczywistych wynikach Polaków od 2023 r., łącznie z pojedynczymi podejściami i startami bez wyniku.
+
+| Zawodnik | Szczyt GL | Forma GL (mediana 3 ostatnich) | Skuteczność podejść | Trend GL/rok |
+|---|---|---|---|---|
+| Adrian Świerczyński | 100,7 | **100,3** | 62,3% | 2,6 |
+| Bartłomiej Bogdewicz | **101,5** | 99,9 | 74,8% | **4,9** |
+| Sławomir Nowak | 100,2 | 99,5 | **83,3%** | 1,7 |
+| Kacper Curylo | 99,7 | 98,0 | **83,3%** | 2,6 |
+| Dawid Bieńko | 100,4 | 97,2 | 75,0% | 3,3 |
+
+Każda metryka wskazuje innego lidera. Świerczyński ma najlepszą aktualną formę, ale zalicza tylko 62% podejść
+przy średniej polskich zawodników 74%; Bogdewicz ma najwyższy szczyt i najszybciej się rozwija; Nowak i Curylo
+startują najpewniej. Ponieważ forma czołowej trójki różni się o mniej niż 0,8 GL, rekomendacja to Bogdewicz,
+ze Świerczyńskim jako rezerwowym i ostrożniejszym pierwszym podejściem w wyciskaniu dla Bogdewicza, który spalił
+je w 4 z 12 startów. Pełne opracowanie z ograniczeniami:
+[`report/Zadanie_2.2_wybor_kadry.pdf`](report/Zadanie_2.2_wybor_kadry.pdf).
+
+![GL kandydatów w czasie](figures/selection_gl_over_time.png)
+
 ## Struktura repozytorium
 
 ```
 ├── README.md                     ← opracowanie po angielsku
 ├── README.pl.md                  ← opracowanie po polsku (ten plik)
-├── analysis.ipynb                ← analiza na danych, wykonany notebook z wynikami
-├── powerlifting_metrics.py       ← implementacja IPF GL + wczytywanie danych
+├── analysis.ipynb                ← pierwsza analiza: IPF GL i jego ograniczenia
+├── team_selection.ipynb          ← druga analiza: wybór zawodnika na mistrzostwa świata
+├── powerlifting_metrics.py       ← implementacja IPF GL, liczenie podejść, wczytywanie danych
 ├── pyproject.toml, uv.lock       ← zależności (zarządzane przez uv)
-├── scripts/make_sample.py        ← generuje próbkę danych do repozytorium
-├── data/sample/                  ← próbka: starty SBD od 2024 r. (~180 tys. wierszy, 6,7 MB)
+├── scripts/make_sample.py        ← generuje próbkę światową (starty SBD od 2024 r.)
+├── scripts/make_poland_sample.py ← generuje próbkę polską (starty Raw od 2023 r., z podejściami)
+├── data/sample/                  ← obie próbki (6,7 MB i 1,1 MB)
 ├── data/raw/                     ← pełna baza (pobierana automatycznie, poza gitem)
-└── figures/                      ← wykresy użyte w opracowaniu
+├── figures/                      ← wykresy użyte w opracowaniach
+└── report/                       ← opracowania w PDF na zajęcia (po polsku) i ich źródła
 ```
 
 ## Uruchomienie
@@ -217,6 +244,9 @@ uv run jupyter notebook analysis.ipynb
 Przy `USE_SAMPLE = False` (domyślnie) notebook przy pierwszym uruchomieniu pobiera pełną bazę OpenIPF (~70 MB)
 do `data/raw/`. Liczby w tym opracowaniu pochodzą z tego wariantu. Przy `USE_SAMPLE = True` korzysta z próbki
 z repozytorium i działa bez internetu; liczby będą trochę inne, bo próbka obejmuje tylko lata 2024-2026.
+
+`team_selection.ipynb` uruchamia się tak samo. Domyślnie (`USE_SAMPLE = True`) czyta dołączoną próbkę polskich
+startów, która zawiera wszystko, czego potrzebuje ta analiza.
 
 ## Źródła
 

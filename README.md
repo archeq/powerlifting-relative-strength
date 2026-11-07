@@ -190,18 +190,45 @@ A metric like IPF GL is a good tool for narrowing down choices and comparing res
 conditions, which is how the IPF uses it. Assessing a lifter properly still takes several metrics (peak,
 consistency, trend, age), the context of each meet and a coach's judgement.
 
+## Second analysis: picking a lifter for the World Championships
+
+Assignment 2.2 (*From an idea to an analysis*) puts that conclusion to work. The Polish federation has one place
+in the men's 105 kg class at the IPF World Classic Championships, and five active Polish lifters have a best GL
+between 99.7 and 101.5. The notebook [`team_selection.ipynb`](team_selection.ipynb) compares them with four
+metrics, using real Polish results since 2023 including individual attempts and bomb-outs.
+
+| Lifter | Peak GL | Form GL (median of last 3) | Attempt success | Trend GL/year |
+|---|---|---|---|---|
+| Adrian Świerczyński | 100.7 | **100.3** | 62.3% | 2.6 |
+| Bartłomiej Bogdewicz | **101.5** | 99.9 | 74.8% | **4.9** |
+| Sławomir Nowak | 100.2 | 99.5 | **83.3%** | 1.7 |
+| Kacper Curylo | 99.7 | 98.0 | **83.3%** | 2.6 |
+| Dawid Bieńko | 100.4 | 97.2 | 75.0% | 3.3 |
+
+Each metric has a different leader. Świerczyński has the best current form but makes only 62% of attempts
+against a Polish average of 74%; Bogdewicz has the highest peak and the steepest improvement; Nowak and Curylo
+are the most reliable. With the top three within 0.8 GL of each other in form, the recommendation is Bogdewicz,
+with Świerczyński as the reserve and a more conservative bench press opener for Bogdewicz, who missed it in 4 of
+12 meets. The full write-up in Polish, with its limitations, is
+[`report/Zadanie_2.2_wybor_kadry.pdf`](report/Zadanie_2.2_wybor_kadry.pdf).
+
+![Candidates' GL over time](figures/selection_gl_over_time.png)
+
 ## Repository structure
 
 ```
 ├── README.md                     ← write-up in English (this file)
 ├── README.pl.md                  ← write-up in Polish
-├── analysis.ipynb                ← data analysis, executed notebook with results
-├── powerlifting_metrics.py       ← IPF GL implementation + data loading
+├── analysis.ipynb                ← first analysis: IPF GL and its limitations
+├── team_selection.ipynb          ← second analysis: picking a lifter for the World Championships
+├── powerlifting_metrics.py       ← IPF GL implementation, attempt counts, data loading
 ├── pyproject.toml, uv.lock       ← dependencies (managed with uv)
-├── scripts/make_sample.py        ← builds the data sample bundled with the repo
-├── data/sample/                  ← sample: SBD results since 2024 (~180k rows, 6.7 MB)
+├── scripts/make_sample.py        ← builds the worldwide sample (SBD results since 2024)
+├── scripts/make_poland_sample.py ← builds the Polish sample (Raw starts since 2023, with attempts)
+├── data/sample/                  ← both samples (6.7 MB and 1.1 MB)
 ├── data/raw/                     ← full dataset (downloaded automatically, not in git)
-└── figures/                      ← charts used in the write-up
+├── figures/                      ← charts used in the write-ups
+└── report/                       ← PDF write-ups for the course (Polish) and their sources
 ```
 
 ## How to run
@@ -216,6 +243,9 @@ uv run jupyter notebook analysis.ipynb
 With `USE_SAMPLE = False` (the default), the notebook downloads the full OpenIPF dataset (~70 MB) into `data/raw/`
 on first run. The numbers in this write-up come from this mode. With `USE_SAMPLE = True` it uses the sample bundled
 with the repository and works offline; the numbers differ slightly because the sample covers only 2024-2026.
+
+`team_selection.ipynb` opens the same way. It reads the bundled Polish sample by default (`USE_SAMPLE = True`),
+which already contains everything the analysis needs.
 
 ## Sources
 
