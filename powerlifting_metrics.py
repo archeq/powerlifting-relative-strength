@@ -11,6 +11,7 @@ ROOT = Path(__file__).resolve().parent
 OPENIPF_URL = "https://openpowerlifting.gitlab.io/opl-csv/files/openipf-latest.zip"
 RAW_ZIP = ROOT / "data" / "raw" / "openipf-latest.zip"
 SAMPLE_CSV = ROOT / "data" / "sample" / "openipf_sbd_2024plus.csv.gz"
+POLAND_SAMPLE_CSV = ROOT / "data" / "sample" / "poland_raw_sbd_2023plus.csv"
 
 COLUMNS = [
     "Name", "Sex", "Event", "Equipment", "Age", "Division", "BodyweightKg",
@@ -18,6 +19,10 @@ COLUMNS = [
     "TotalKg", "Place", "Dots", "Wilks", "Goodlift", "Country",
     "Federation", "Date", "MeetName",
 ]
+
+LIFTS = ["Squat", "Bench", "Deadlift"]
+# Individual attempts: positive = made, negative = missed, empty = not taken
+ATTEMPT_COLUMNS = [f"{lift}{i}Kg" for lift in LIFTS for i in (1, 2, 3)]
 
 # IPF GL coefficients for full powerlifting (SBD), in force since 1 May 2020.
 # Key: (sex, equipment) -> (A, B, C)
@@ -63,11 +68,11 @@ def download_openipf(path=RAW_ZIP):
     return path
 
 
-def read_openipf_zip(path=RAW_ZIP):
+def read_openipf_zip(path=RAW_ZIP, columns=COLUMNS):
     with zipfile.ZipFile(path) as z:
         csv_name = next(n for n in z.namelist() if n.endswith(".csv"))
         with z.open(csv_name) as f:
-            return pd.read_csv(f, usecols=COLUMNS, low_memory=False)
+            return pd.read_csv(f, usecols=columns, low_memory=False)
 
 
 def filter_sbd(df, date_from):
@@ -98,3 +103,46 @@ def load_openipf(use_sample=False, date_from="2019-01-01"):
     else:
         df = read_openipf_zip(download_openipf())
     return filter_sbd(df, date_from)
+
+
+def filter_country_starts(df, country, date_from):
+    """Keeps all Raw SBD starts of one country's lifters, including bomb-outs (DQ, no total).
+
+    No-shows (NS) and doping disqualifications (DD) are dropped.
+    """
+    df = df[
+        (df["Event"] == "SBD")
+        & (df["Equipment"] == "Raw")
+        & (df["Country"] == country)
+        & (df["Date"] >= date_from)
+        & (df["TotalKg"].notna() | (df["Place"] == "DQ"))
+    ].copy()
+    # Same duplicate rule as in filter_sbd; a valid total wins over a bomb-out row
+    df = (df.sort_values("TotalKg", ascending=False, na_position="last")
+            .drop_duplicates(["Name", "Date", "MeetName"]))
+    df["Date"] = pd.to_datetime(df["Date"])
+    return df.sort_values(["Date", "MeetName", "Name"]).reset_index(drop=True)
+
+
+def load_country_starts(country="Poland", use_sample=False, date_from="2023-01-01"):
+    """Returns Raw SBD starts (with individual attempts and bomb-outs) of one country's lifters.
+
+    use_sample=True reads the bundled sample of Polish lifters since 2023 and works offline.
+    """
+    if use_sample:
+        df = pd.read_csv(POLAND_SAMPLE_CSV, low_memory=False)
+    else:
+        df = read_openipf_zip(download_openipf(), columns=COLUMNS + ATTEMPT_COLUMNS)
+    return filter_country_starts(df, country, date_from)
+
+
+def attempt_counts(df):
+    """Counts made and attempted attempts per start, for each lift and in total (max 9)."""
+    out = pd.DataFrame(index=df.index)
+    for lift in LIFTS:
+        attempts = df[[f"{lift}{i}Kg" for i in (1, 2, 3)]]
+        out[f"{lift}Made"] = (attempts > 0).sum(axis=1)
+        out[f"{lift}Attempted"] = attempts.notna().sum(axis=1)
+    out["Made"] = out[[f"{lift}Made" for lift in LIFTS]].sum(axis=1)
+    out["Attempted"] = out[[f"{lift}Attempted" for lift in LIFTS]].sum(axis=1)
+    return out
